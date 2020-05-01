@@ -1,7 +1,8 @@
 # coding=utf-8
 
 from dataclasses import dataclass
-from typing import List, Any
+from typing import List, Any, Optional
+import requests
 
 
 class BaseSite:
@@ -11,9 +12,15 @@ class BaseSite:
     get_chapters 根据book（含书籍的url地址）查询某本小说的章节信息\n
     get_chapter_content 根据chapter（含章节的url地址）查询某章节的内容\n
     """
-
-    def __init__(self):
-        self.get_books_max_number: int = 10  # get_books最大的返回结果
+    @classmethod
+    def try_get_url(cls, session, url) -> Optional[requests.Response]:
+        for _ in range(3):
+            try:
+                r = session.get(url=url, timeout=10)
+                return r
+            except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout) as e:
+                pass
+        return None
 
     def get_books(self, search_info: str) -> List[Any]:
         """

@@ -1,4 +1,4 @@
-package com.example.book;
+package com.mailxiaoping.book;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
@@ -13,7 +13,6 @@ import androidx.core.content.ContextCompat;
 import android.os.Environment;
 import android.util.Log;
 import android.view.View;
-import android.widget.Adapter;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
@@ -25,14 +24,13 @@ import com.chaquo.python.PyObject;
 import com.chaquo.python.Python;
 import com.chaquo.python.android.AndroidPlatform;
 
-public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener {
+public class MainActivity extends AppCompatActivity
+        implements AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener {
     private PyObject story;
-
-    private final int max_list_view_data_len = 20;
+    private final int max_list_view_data_len = 100;
     private final String list_view_data[] = new String[max_list_view_data_len];
     private ArrayAdapter adapters[] = new ArrayAdapter[1];
     private int selected_book_index = -1;
-    ListView listView1;
     final String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/download/xiaoping/";
 
     @Override
@@ -43,7 +41,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Python.start(new AndroidPlatform(this));
         }
 
-        listView1 = findViewById(R.id.listView1);
+        ListView listView1 = findViewById(R.id.listView1);
         InitArrayAdapterData();
         ArrayAdapter arrayAdapter = new ArrayAdapter<String>(this,
                 android.R.layout.simple_list_item_1, list_view_data);
@@ -90,10 +88,11 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 //                Toast.makeText(MainActivity.this, "hello", Toast.LENGTH_SHORT).show();
+        setListViewBackGround((ListView) parent, position);
         if (list_view_data[position].equals(""))
-            return;
-        setListViewBackGround(listView1, position);
-        selected_book_index = position;
+            selected_book_index = -1;
+        else
+            selected_book_index = position;
     }
 
     @Override
@@ -130,12 +129,15 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
 
 
     private class DownloadInfoTask extends AsyncTask<String, String, Boolean> {
+        String FINISH_FLAG_STRING;
+
         @Override
         protected Boolean doInBackground(String... params) {
             String info = params[0];
             String pre_statue, statue;
+            FINISH_FLAG_STRING = story.get("FINISH_FLAG_STRING").toString();
             publishProgress("开始查询小说");
-            story.callAttr("asyn_fetch_books", info);
+            story.callAttr("asyn_do_action_fetch_books", info);
             pre_statue = "";
             for (int i = 300; i >= 0; i--) {
                 try {
@@ -144,7 +146,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     e.printStackTrace();
                 }
                 statue = story.callAttr("asyn_get_statue_fetch_books").toString();
-                if (statue.equals("finish")) {
+                if (statue.equals(FINISH_FLAG_STRING)) {
                     publishProgress(statue);
                     return true;
                 }
@@ -162,7 +164,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             // 更新进度
             String statue = values[0];
             TextView tv1 = findViewById(R.id.textView1);
-            if (statue.equals("finish")) {  //查询成功
+            if (statue.equals(FINISH_FLAG_STRING)) {  //查询成功
                 // 刷新listview1列表并更新
                 InitArrayAdapterData();
                 java.util.List list = story.get("books").asList();
@@ -193,9 +195,12 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     }
 
     private class DownloadBookTask extends AsyncTask<Integer, String, Boolean> {
+        String FINISH_FLAG_STRING;
+
         @Override
         protected Boolean doInBackground(Integer... params) {
             int book_index = params[0];
+            FINISH_FLAG_STRING = story.get("FINISH_FLAG_STRING").toString();
             String statue;
             publishProgress("开始获取章节信息");
             try {
@@ -219,7 +224,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                 }
                 statue = story.callAttr("asyn_get_statue_save_books").toString();
                 Log.v("main", statue);
-                if (!statue.equals("finish")) {
+                if (!statue.equals(FINISH_FLAG_STRING)) {
                     publishProgress(statue);
                 } else {
                     statue = String.format("下载完成，文件名为%s", story.get("save_filename").toString());

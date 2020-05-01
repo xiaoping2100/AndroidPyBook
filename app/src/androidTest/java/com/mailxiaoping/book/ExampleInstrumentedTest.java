@@ -1,4 +1,4 @@
-package com.example.book;
+package com.mailxiaoping.book;
 
 import android.content.Context;
 
@@ -22,6 +22,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
 
-        assertEquals("com.example.book", appContext.getPackageName());
+        assertEquals("com.mailxiaoping.book", appContext.getPackageName());
     }
 }

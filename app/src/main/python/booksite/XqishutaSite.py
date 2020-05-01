@@ -18,16 +18,18 @@ class XqishutaSite(BaseSite):
 
     def get_books(self, search_info: str) -> List[Book]:
         url = self.search_url % urllib.parse.quote(search_info)
-        r = self.session.get(url=url)
+        r = self.try_get_url(self.session, url)
+        if r is None:
+            return []
+
         soup = BeautifulSoup(r.content, 'html.parser')
         book_tag_list = soup.select('tr')
         book_num = len(book_tag_list) - 1
-
         if book_num == 0:
             return []
 
         search_book_results = []
-        book_soup_list = book_tag_list[1:self.get_books_max_number + 1]
+        book_soup_list = book_tag_list[1:]
         for book_soup in book_soup_list:
             td_list = book_soup.findAll('td')
             book_url = self.site_url + td_list[1].find('a').attrs['href']
@@ -40,7 +42,10 @@ class XqishutaSite(BaseSite):
         return search_book_results
 
     def get_chapters(self, book: Book) -> List[Chapter]:
-        r = self.session.get(book.url)
+        r = self.try_get_url(self.session, book.url)
+        if r is None:
+            return []
+
         soup = BeautifulSoup(r.content, 'html.parser')
         real_url = self.site_url + soup.select_one('div.detail_right').select_one('a').attrs['href']
         r = self.session.get(real_url)
@@ -55,15 +60,9 @@ class XqishutaSite(BaseSite):
 
     def get_chapter_content(self, chapter: Chapter) -> str:
         session = copy.deepcopy(self.session)
-        for _ in range(3):
-            try:
-                r = session.get(chapter.url, timeout=10)
-                session.close()
-                break
-            except:
-                pass
-        else:
-            session.close()
+        r = self.try_get_url(session, chapter.url)
+        session.close()
+        if r is None:
             return f'{chapter.title}\r\n下载失败'
 
         soup = BeautifulSoup(r.content, 'html.parser')

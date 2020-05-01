@@ -39,9 +39,7 @@ class Application(tkinter.Frame):
     def create_widgets(self):
         query_label = tkinter.Label(self.root, text='输入查询的书名或作者:', width=20)
         query_input = tkinter.Entry(self.root, textvariable=self.query_info_var, width=120)
-        query_books_btn = tkinter.Button(self.root, text='同步查询,同步返回', command=self.query_books_sync_nonthreading)
-        query_books_btn3 = tkinter.Button(self.root, text='协程查询,同步返回', command=self.query_books_async_nonthreading)
-        query_books_btn4 = tkinter.Button(self.root, text='协程查询,线程返回', command=self.query_books_async_threading)
+        query_books_btn = tkinter.Button(self.root, text='查询', command=self.query_books)
 
         ret_label2 = tkinter.Label(self.root, text='查询书籍结果:', width=20)
         self.ret_books = tkinter.Listbox(self.root, selectmode=tkinter.SINGLE, height=10, width=120)
@@ -57,17 +55,13 @@ class Application(tkinter.Frame):
         ret_label5 = tkinter.Label(self.root, text='小说信息:', width=20)
         self.ret_content = tkinter.Text(self.root, height=25, width=120)
 
-        download_label = tkinter.Label(self.root, text='下载进度:')
-        self.download_text = tkinter.Entry(self.root, textvariable=self.download_var, width=120)
-        download_book_btn = tkinter.Button(self.root, text='同步下载,同步返回', command=self.download_book_sync_nonthreading)
-        download_book_btn3 = tkinter.Button(self.root, text='协程下载,同步返回', command=self.download_book_async_nonthreading)
-        download_book_btn4 = tkinter.Button(self.root, text='协程下载,线程返回', command=self.download_book_async_threading)
+        # download_label = tkinter.Label(self.root, text='下载进度:')
+        # self.download_text = tkinter.Entry(self.root, textvariable=self.download_var, width=120)
+        download_book_btn = tkinter.Button(self.root, text='下载', command=self.download_book)
 
         query_label.grid(row=1, column=1)
         query_input.grid(row=1, column=2)
         query_books_btn.grid(row=1, column=3)
-        query_books_btn3.grid(row=1, column=5)
-        query_books_btn4.grid(row=1, column=6)
 
         ret_label2.grid(row=2, column=1)
         self.ret_books.grid(row=2, column=2)
@@ -83,16 +77,14 @@ class Application(tkinter.Frame):
         ret_label5.grid(row=5, column=1)
         self.ret_content.grid(row=5, column=2)
 
-        download_label.grid(row=6, column=1)
-        self.download_text.grid(row=6, column=2)
+        # download_label.grid(row=6, column=1)
+        # self.download_text.grid(row=6, column=2)
         download_book_btn.grid(row=6, column=3)
-        download_book_btn3.grid(row=6, column=5)
-        download_book_btn4.grid(row=6, column=6)
 
         # 单击事件
         self.ret_books.bind('<ButtonRelease-1>', self.select_book)
 
-    def query_books_sync_nonthreading(self):
+    def query_books(self):
         self.ret_books.delete(0, "end")
         info = self.query_info_var.get()
         self.story_.fetch_books(info)
@@ -101,12 +93,6 @@ class Application(tkinter.Frame):
         for book in self.story_.books:
             item = f'书名:{book.name} 作者：{book.author} 简介：{book.brief[:60]}'
             self.ret_books.insert('end', item[:40])
-
-    def query_books_async_nonthreading(self):
-        pass
-
-    def query_books_async_threading(self):
-        pass
 
     def query_chapters(self):
         sel = self.ret_books.curselection()
@@ -140,20 +126,10 @@ class Application(tkinter.Frame):
         info = self.story_.books[sel[0]].brief
         self.book_brief.insert('insert', info)
 
-    def download_book_sync_nonthreading(self):
+    def download_book(self):
         start = time.time()
         self.story_.save_books('d:\\temp\\')
         tkinter.messagebox.showinfo('提示', f'耗时:{time.time() - start}秒')
-
-    def download_book_async_nonthreading(self):
-        pass
-
-    def download_book_async_threading(self):
-        pass
-
-    def callback(self, total_number: int, finished_number: int) -> None:
-        self.download_var.set(f'{finished_number}/{total_number} finished')
-
 
 def main():
     story_ = story.Story()

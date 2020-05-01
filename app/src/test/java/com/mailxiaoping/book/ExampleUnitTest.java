@@ -1,4 +1,4 @@
-package com.example.book;
+package com.mailxiaoping.book;
 
 import org.junit.Test;
 

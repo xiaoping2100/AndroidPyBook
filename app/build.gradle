@@ -6,7 +6,7 @@ android {
     buildToolsVersion "29.0.2"
 
     defaultConfig {
-        applicationId "com.example.book"
+        applicationId "com.mailxiaoping.book"
         minSdkVersion 23
         targetSdkVersion 28
         versionCode 1
@@ -26,7 +26,12 @@ android {
             pip {
                 // 安装需要的python库
                 install "F:/python/android/chaquopy-lib/requests-2.23.0-py2.py3-none-any.whl"
-                install "beautifulsoup4"
+                install "F:/python/android/chaquopy-lib/beautifulsoup4-4.9.0-py3-none-any.whl"
+                install "F:/python/android/chaquopy-lib/idna-2.9-py2.py3-none-any.whl"
+                install "F:/python/android/chaquopy-lib/certifi-2020.4.5.1-py2.py3-none-any.whl"
+                install "F:/python/android/chaquopy-lib/urllib3-1.25.9-py2.py3-none-any.whl"
+                install "F:/python/android/chaquopy-lib/chardet-3.0.4-py2.py3-none-any.whl"
+                install "F:/python/android/chaquopy-lib/soupsieve-2.0-py2.py3-none-any.whl"
             }
         }
     }
