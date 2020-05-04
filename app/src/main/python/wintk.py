@@ -131,12 +131,21 @@ class Application(tkinter.Frame):
         self.story_.save_books('d:\\temp\\')
         tkinter.messagebox.showinfo('提示', f'耗时:{time.time() - start}秒')
 
+
 def main():
     story_ = story.Story()
     site1 = booksite.XqishutaSite()
     story_.register_site(site1)
-    site2 = booksite.XqishutaSite()
+    site2 = booksite.SoxsSite()
     story_.register_site(site2)
+    site3 = booksite.CuohengSite()
+    story_.register_site(site3)
+    site4 = booksite.Shuku87Site()
+    story_.register_site(site4)
+    site5 = booksite.Fox2018Site()
+    story_.register_site(site5)
+    site6 = booksite.DaocaorenshuwuSite()
+    story_.register_site(site6)
 
     root = tkinter.Tk()
     root.title('下载小说')

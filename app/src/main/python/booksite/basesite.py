@@ -5,6 +5,16 @@ from typing import List, Any, Optional
 import requests
 
 
+@dataclass
+class SiteInfo:
+    type: str  # 网络小说; 文学；英文
+    statue: str  # 稳定版本；上线版本
+    name: str
+    brief_name: str
+    url: str
+    max_threading_number: int = 50  # 并行访问的最大线程数量
+
+
 class BaseSite:
     """
     具体查询小说网站的父类，每个子类需要提供三个方法\n
@@ -12,15 +22,31 @@ class BaseSite:
     get_chapters 根据book（含书籍的url地址）查询某本小说的章节信息\n
     get_chapter_content 根据chapter（含章节的url地址）查询某章节的内容\n
     """
+
     @classmethod
-    def try_get_url(cls, session, url) -> Optional[requests.Response]:
-        for _ in range(3):
+    def try_get_url(cls, session: requests.session, url: str, *,
+                    try_times: int = 3, try_timeout: int = 10, **kwargs) -> Optional[requests.Response]:
+        for _ in range(try_times):
             try:
-                r = session.get(url=url, timeout=10)
+                r = session.get(url=url, timeout=try_timeout, **kwargs)
                 return r
             except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout) as e:
                 pass
         return None
+
+    @classmethod
+    def try_post_url(cls, session: requests.session, url: str, *,
+                     try_times: int = 3, try_timeout: int = 10, **kwargs) -> Optional[requests.Response]:
+        for _ in range(try_times):
+            try:
+                r = session.post(url=url, timeout=try_timeout, **kwargs)
+                return r
+            except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout) as e:
+                pass
+        return None
+
+    def __init__(self, site_info: SiteInfo):
+        self.site_info = site_info
 
     def get_books(self, search_info: str) -> List[Any]:
         """

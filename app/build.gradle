@@ -32,6 +32,9 @@ android {
                 install "F:/python/android/chaquopy-lib/urllib3-1.25.9-py2.py3-none-any.whl"
                 install "F:/python/android/chaquopy-lib/chardet-3.0.4-py2.py3-none-any.whl"
                 install "F:/python/android/chaquopy-lib/soupsieve-2.0-py2.py3-none-any.whl"
+                install "F:/python/android/chaquopy-lib/html5lib-1.0.1-py2.py3-none-any.whl"
+                install "F:/python/android/chaquopy-lib/six-1.14.0-py2.py3-none-any.whl"
+                install "F:/python/android/chaquopy-lib/webencodings-0.5.1-py2.py3-none-any.whl"
             }
         }
     }

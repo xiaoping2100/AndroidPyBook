@@ -1,4 +1,5 @@
 import pathlib
+import re
 import tempfile
 import threading
 from typing import List
@@ -13,9 +14,9 @@ class _Download(threading.Thread):
     lock = None
 
     @classmethod
-    def cls_initial(cls):
+    def cls_initial(cls, max_threading_number):
         cls.complete_count = 0
-        cls.sema = threading.Semaphore(cls.MAX_THREADING_NUMBER)
+        cls.sema = threading.Semaphore(max_threading_number)
         cls.lock = threading.Lock()
 
     def __init__(self, action_func, callback_func, *action_func_args):
@@ -41,7 +42,6 @@ class _Download(threading.Thread):
 
 
 class Story:
-    MAX_THREADING_NUMBER = 50
     FINISH_FLAG_STRING = 'finish'
 
     def __init__(self):
@@ -64,7 +64,7 @@ class Story:
         def _callback(self_, total, count):
             self_.asyn_task_of_fetch_books_statue = f"完成{count}/{total}网站搜索"
 
-        _Download.cls_initial()
+        _Download.cls_initial(_Download.MAX_THREADING_NUMBER)
         tasks = [_Download(site.get_books, functools.partial(_callback, self, len(self.sites)), search_info)
                  for site in self.sites]
         for task in tasks:
@@ -117,7 +117,7 @@ class Story:
         tasks = []
         tmp_dir = tempfile.TemporaryDirectory()  # 创建临时目录
         numbers = len(self.chapters)
-        _Download.cls_initial()
+        _Download.cls_initial(book.site.site_info.max_threading_number)
         for index in range(numbers):
             chapter = self.chapters[index]
             filename = str(pathlib.Path(tmp_dir.name) / f'{index:05}.txt')
@@ -132,8 +132,10 @@ class Story:
         self.save_filename = f'{directory}{book.name}-{book.author}.txt'
         with open(self.save_filename, 'w', encoding='utf-8') as f:
             files = sorted(list(pathlib.Path(tmp_dir.name).iterdir()))
-            for file in files:
+            for index, file in enumerate(files):
+                title = re.sub(r'第.*章', "", self.chapters[index].title).replace('第', '').replace('章', '').strip()
                 with open(file.as_posix(), 'r', encoding='utf-8') as f2:
+                    f.write(f'\r\n第{index + 1}章 {title}\r\n')
                     f.write(f2.read())
         tmp_dir.cleanup()  # 删除临时目录
         self.asyn_task_of_save_books_statue = self.FINISH_FLAG_STRING

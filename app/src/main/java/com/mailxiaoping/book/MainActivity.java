@@ -155,7 +155,9 @@ public class MainActivity extends AppCompatActivity
                     pre_statue = statue;
                 }
             }
-            publishProgress("查询超时");
+            Toast.makeText(MainActivity.this, "查询超时", Toast.LENGTH_SHORT).show();
+            publishProgress(FINISH_FLAG_STRING); //超时的时候显示先实现的内容
+//            publishProgress("查询超时");
             return false;
         }
 
@@ -216,6 +218,7 @@ public class MainActivity extends AppCompatActivity
                 e.printStackTrace();
             }
             story.callAttr("asyn_do_action_save_books", path);
+            String pre_statue = "";
             for (int i = 6000; i >= 0; i--) {
                 try {
                     Thread.sleep(100);
@@ -223,13 +226,15 @@ public class MainActivity extends AppCompatActivity
                     e.printStackTrace();
                 }
                 statue = story.callAttr("asyn_get_statue_save_books").toString();
-                Log.v("main", statue);
-                if (!statue.equals(FINISH_FLAG_STRING)) {
-                    publishProgress(statue);
-                } else {
+//                Log.v("main", statue);
+                if (statue.equals(FINISH_FLAG_STRING)) {
                     statue = String.format("下载完成，文件名为%s", story.get("save_filename").toString());
                     publishProgress(statue);
                     return true;
+                }
+                if (!statue.equals(pre_statue)) {
+                    publishProgress(statue);
+                    pre_statue = statue;
                 }
             }
             publishProgress("下载超时");
