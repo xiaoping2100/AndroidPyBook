@@ -34,7 +34,7 @@ class _Download(threading.Thread):
             _Download.sema.release()
             if _Download.lock.acquire():
                 _Download.complete_count += 1
-                self.callback_func(self.complete_count)
+                self.callback_func(self.result, self.complete_count)
                 _Download.lock.release()
 
     def get_resuls(self):
@@ -61,18 +61,19 @@ class Story:
         self.books.clear()
         self.book_selected = None
 
-        def _callback(self_, total, count):
+        def _callback_func(self_, total, results, count):
+            self_.books.extend(results)
             self_.asyn_task_of_fetch_books_statue = f"完成{count}/{total}网站搜索"
 
         _Download.cls_initial(_Download.MAX_THREADING_NUMBER)
-        tasks = [_Download(site.get_books, functools.partial(_callback, self, len(self.sites)), search_info)
+        tasks = [_Download(site.get_books, functools.partial(_callback_func, self, len(self.sites)), search_info)
                  for site in self.sites]
         for task in tasks:
             task.start()
         for task in tasks:
             task.join()
-        for task in tasks:
-            self.books.extend(task.get_resuls())
+        # for task in tasks:
+        #     self.books.extend(task.get_resuls())
         self.asyn_task_of_fetch_books_statue = self.FINISH_FLAG_STRING
 
     def asyn_do_action_fetch_books(self, search_info: str) -> None:
@@ -98,7 +99,7 @@ class Story:
         将self.book, self.chapters, self.contents的信息保存为一个zip文件
         """
 
-        def _callback(self_, total, count):
+        def _callback(self_, total, _, count):
             self_.asyn_task_of_save_books_statue = f"完成{count}/{total}章"
             print(f"完成{count}/{total}章")
 

@@ -7,7 +7,7 @@ import urllib.parse
 from bs4 import BeautifulSoup
 from typing import List
 
-from .basesite import SiteInfo, BaseSite, Book, Chapter
+from .basesite import SiteInfo, BaseSite, Book, Chapter, print_in_out
 
 
 class Shuku87Site(BaseSite):
@@ -17,7 +17,7 @@ class Shuku87Site(BaseSite):
             statue='上线版本',
             url='http://www.87xiaoshuo.net',
             name='霸气书库',
-            brief_name='霸气',
+            brief_name='霸气网',
             max_threading_number=3,
         )
         super().__init__(self.site_info)
@@ -26,6 +26,7 @@ class Shuku87Site(BaseSite):
         self.search_url = 'http://www.87xiaoshuo.net/modules/article/search.php'
         self.session = requests.session()
 
+    @print_in_out
     def get_books(self, search_info: str) -> List[Book]:
         headers = {'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
                    'Content-Type': 'application/x-www-form-urlencoded',
@@ -39,7 +40,7 @@ class Shuku87Site(BaseSite):
         if r.status_code == 302:  # 只找到一本书，将跳转
             return [Book(site=self, url=r.headers['Location'], name=search_info, author="", brief="")]
 
-        soup = BeautifulSoup(r.content, 'html.parser')
+        soup = BeautifulSoup(r.content.decode(self.encoding, 'ignore'), 'html.parser')
         if not (book_soup_list := soup.select('div.ml212 dt')):
             return []
 
@@ -48,7 +49,8 @@ class Shuku87Site(BaseSite):
             book_url = book_soup.select_one('a').attrs['href']
             m = re.search(r'(\w+).*作者：(\w+).*?(\w+.*)$', book_soup.text, flags=re.DOTALL)
             if not m:
-                print(f'{book_url.text=}')
+                print(f'error in {self.site_info.brief_name} {book_url=} {book_soup.text=}')
+                return []
             book_name = m.group(1)
             book_author = m.group(2)
             book_brief = m.group(3).replace("\n", "").replace("\r", "").strip()
@@ -57,13 +59,14 @@ class Shuku87Site(BaseSite):
             search_book_results.append(book)
         return search_book_results
 
+    @print_in_out
     def get_chapters(self, book: Book) -> List[Chapter]:
         url = book.url.replace("/book/", "/read/")
         r = self.try_get_url(self.session, url)
         if r is None:
             return []
 
-        soup = BeautifulSoup(r.content, 'html.parser')
+        soup = BeautifulSoup(r.content.decode(self.encoding, 'ignore'), 'html.parser')
         chapter_soup_list = soup.select('td > a')
         chapters = [Chapter(site=self,
                             url=self.base_url + chapter.attrs['href'],

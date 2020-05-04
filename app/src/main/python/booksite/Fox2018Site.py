@@ -7,7 +7,7 @@ import urllib.parse
 from bs4 import BeautifulSoup
 from typing import List
 
-from .basesite import SiteInfo,BaseSite, Book, Chapter
+from .basesite import SiteInfo, BaseSite, Book, Chapter, print_in_out
 
 
 class Fox2018Site(BaseSite):
@@ -26,6 +26,7 @@ class Fox2018Site(BaseSite):
         self.search_url = 'http://www.fox2018.com/e/search/index.php'
         self.session = requests.session()
 
+    @print_in_out
     def get_books(self, search_info: str) -> List[Book]:
         headers = {'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
                    'Content-Type': 'application/x-www-form-urlencoded',
@@ -52,6 +53,7 @@ class Fox2018Site(BaseSite):
             search_book_results.append(book)
         return search_book_results
 
+    @print_in_out
     def get_chapters(self, book: Book) -> List[Chapter]:
         r = self.try_get_url(self.session, book.url)
         if r is None:

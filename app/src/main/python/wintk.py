@@ -91,7 +91,7 @@ class Application(tkinter.Frame):
 
         self.ret_books.delete(0, "end")
         for book in self.story_.books:
-            item = f'书名:{book.name} 作者：{book.author} 简介：{book.brief[:60]}'
+            item = f'[{book.site.site_info.brief_name}] 书名:{book.name} 作者：{book.author} 简介：{book.brief[:60]}'
             self.ret_books.insert('end', item[:40])
 
     def query_chapters(self):

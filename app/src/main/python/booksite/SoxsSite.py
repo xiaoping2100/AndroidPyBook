@@ -6,7 +6,7 @@ import urllib.parse
 from bs4 import BeautifulSoup
 from typing import List
 
-from .basesite import SiteInfo,BaseSite, Book, Chapter
+from .basesite import SiteInfo, BaseSite, Book, Chapter, print_in_out
 
 
 class SoxsSite(BaseSite):
@@ -25,6 +25,7 @@ class SoxsSite(BaseSite):
         self.search_url = 'https://www.soxs.cc/search.html'
         self.session = requests.session()
 
+    @print_in_out
     def get_books(self, search_info: str) -> List[Book]:
         r = self.try_post_url(self.session, url=self.search_url, try_timeout=5,
                               params=f'searchtype=all&searchkey={urllib.parse.quote(search_info)}')
@@ -50,6 +51,7 @@ class SoxsSite(BaseSite):
             search_book_results.append(book)
         return search_book_results
 
+    @print_in_out
     def get_chapters(self, book: Book) -> List[Chapter]:
         r = self.try_get_url(self.session, book.url)
         if r is None:

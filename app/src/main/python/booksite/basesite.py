@@ -1,5 +1,7 @@
 # coding=utf-8
-
+import functools
+import threading
+import time
 from dataclasses import dataclass
 from typing import List, Any, Optional
 import requests
@@ -25,7 +27,7 @@ class BaseSite:
 
     @classmethod
     def try_get_url(cls, session: requests.session, url: str, *,
-                    try_times: int = 3, try_timeout: int = 10, **kwargs) -> Optional[requests.Response]:
+                    try_times: int = 3, try_timeout: int = 5, **kwargs) -> Optional[requests.Response]:
         for _ in range(try_times):
             try:
                 r = session.get(url=url, timeout=try_timeout, **kwargs)
@@ -36,7 +38,7 @@ class BaseSite:
 
     @classmethod
     def try_post_url(cls, session: requests.session, url: str, *,
-                     try_times: int = 3, try_timeout: int = 10, **kwargs) -> Optional[requests.Response]:
+                     try_times: int = 3, try_timeout: int = 5, **kwargs) -> Optional[requests.Response]:
         for _ in range(try_times):
             try:
                 r = session.post(url=url, timeout=try_timeout, **kwargs)
@@ -107,3 +109,20 @@ class Chapter:
     site: BaseSite
     url: str
     title: str
+
+
+def print_in_out(func):
+    def _localtime():
+        t = time.time()
+        return f'{time.strftime("%H:%M:%S", time.localtime(t))}.{int((t - int(t)) * 1000)}'
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        if args and isinstance(args[0], BaseSite):
+            print(f'{args[0].site_info.brief_name} {func.__name__} enter. {_localtime()}')
+        ret = func(*args, **kwargs)
+        if args and isinstance(args[0], BaseSite):
+            print(f'{args[0].site_info.brief_name} {func.__name__} return {_localtime()}')
+        return ret
+
+    return wrapper

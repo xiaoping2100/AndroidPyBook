@@ -139,7 +139,7 @@ public class MainActivity extends AppCompatActivity
             publishProgress("开始查询小说");
             story.callAttr("asyn_do_action_fetch_books", info);
             pre_statue = "";
-            for (int i = 300; i >= 0; i--) {
+            for (int i = 50; i >= 0; i--) {
                 try {
                     Thread.sleep(100);
                 } catch (InterruptedException e) {
@@ -155,7 +155,12 @@ public class MainActivity extends AppCompatActivity
                     pre_statue = statue;
                 }
             }
-            Toast.makeText(MainActivity.this, "查询超时", Toast.LENGTH_SHORT).show();
+            publishProgress("timeout");
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             publishProgress(FINISH_FLAG_STRING); //超时的时候显示先实现的内容
 //            publishProgress("查询超时");
             return false;
@@ -166,7 +171,9 @@ public class MainActivity extends AppCompatActivity
             // 更新进度
             String statue = values[0];
             TextView tv1 = findViewById(R.id.textView1);
-            if (statue.equals(FINISH_FLAG_STRING)) {  //查询成功
+            if (statue.equals("timeout")) {
+                Toast.makeText(MainActivity.this, "查询超时", Toast.LENGTH_SHORT).show();
+            } else if (statue.equals(FINISH_FLAG_STRING)) {  //查询成功
                 // 刷新listview1列表并更新
                 InitArrayAdapterData();
                 java.util.List list = story.get("books").asList();
@@ -174,7 +181,8 @@ public class MainActivity extends AppCompatActivity
                     if (i >= max_list_view_data_len)
                         break;
                     PyObject book = ((PyObject) list.get(i));
-                    list_view_data[i] = String.format("%s 作者:%s %s",
+                    list_view_data[i] = String.format("[%S]%s 作者:%s %s",
+                            book.get("site").get("site_info").get("brief_name").toString(),
                             book.get("name").toString(),
                             book.get("author").toString(),
                             book.get("brief").toString());

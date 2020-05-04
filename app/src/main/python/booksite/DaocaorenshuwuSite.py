@@ -9,7 +9,7 @@ import urllib.parse
 from bs4 import BeautifulSoup
 from typing import List
 
-from .basesite import SiteInfo, BaseSite, Book, Chapter
+from .basesite import SiteInfo, BaseSite, Book, Chapter, print_in_out
 
 
 class DaocaorenshuwuSite(BaseSite):
@@ -28,6 +28,7 @@ class DaocaorenshuwuSite(BaseSite):
         self.search_url = 'https://www.daocaorenshuwu.com/plus/search.php?q=%s'
         self.session = requests.session()
 
+    @print_in_out
     def get_books(self, search_info: str) -> List[Book]:
         url = self.search_url % urllib.parse.quote(search_info)
         r = self.try_get_url(self.session, url, try_timeout=5)
@@ -48,6 +49,7 @@ class DaocaorenshuwuSite(BaseSite):
             search_book_results.append(book)
         return search_book_results
 
+    @print_in_out
     def get_chapters(self, book: Book) -> List[Chapter]:
         r = self.try_get_url(self.session, book.url)
         if r is None:
