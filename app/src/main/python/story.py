@@ -56,6 +56,11 @@ class Story:
     def register_site(self, site: BaseSite) -> None:
         self.sites.append(site)
 
+    def debug_print_filepath(self, filepath: str) -> None:
+        # Android中调用 story.callAttr()不能是static函数
+        p = pathlib.Path(filepath)
+        print(p.absolute().as_posix())
+
     def fetch_books(self, search_info: str) -> None:
         assert self.sites
         self.books.clear()
@@ -130,7 +135,8 @@ class Story:
             task.join()
 
         # step4: 将临时目录下的多个文件合并为书籍文件，并删除临时目录
-        self.save_filename = f'{directory}{book.name}-{book.author}.txt'
+        _format_info = lambda info: re.sub(r'[?*:"<>\\/|]', '', info).strip()
+        self.save_filename = f'{directory}{_format_info(book.name)}-{_format_info(book.author)}.txt'
         with open(self.save_filename, 'w', encoding='utf-8') as f:
             files = sorted(list(pathlib.Path(tmp_dir.name).iterdir()))
             for index, file in enumerate(files):
