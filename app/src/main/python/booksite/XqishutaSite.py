@@ -75,7 +75,10 @@ class XqishutaSite(BaseSite):
             return f'{chapter.title}\r\n下载失败'
 
         soup = BeautifulSoup(r.content, 'html.parser')
-        content = soup.select_one('div#content1').text.strip()
+        content_soup = soup.select_one('div#content1')
+        for i in content_soup.select('p.sitetext'):
+            i.decompose()
+        content = content_soup.text.strip()
         # title = chapter.title if chapter.title.startswith("第") else f"第{chapter.title}"
         # content = f'\r\n{title}\r\n{content.replace("最新网址：www.xqishuta.com", "").strip()}'
         return content
