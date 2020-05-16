@@ -79,6 +79,11 @@ public class MainActivity extends AppCompatActivity
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             Toast.makeText(MainActivity.this, "菜单", Toast.LENGTH_SHORT).show();
+//            Log.v("onOptionsItemSelected", getFilesDir().getAbsolutePath());
+//            Log.v("onOptionsItemSelected",getExternalFilesDir("").getAbsolutePath());
+//            Log.v("onOptionsItemSelected",Environment.getExternalStorageDirectory().getAbsolutePath());
+            Log.v("onOptionsItemSelected",getFilesDir().toString());
+            story.callAttr("debug_print_filepath", getFilesDir().getAbsolutePath());
             return true;
         }
 
