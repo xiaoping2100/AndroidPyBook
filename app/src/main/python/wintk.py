@@ -43,10 +43,10 @@ class Application(tkinter.Frame):
 
         # 定义配置页的参数
         self.site_storage_path = 'D:\\temp\\bookapp\\sites\\'
-        self.site_remote_url = 'https://github.com/xiaoping2100/AndroidPyBook/tree/master/app/src/main/python/booksite'
-        self.local_temp_storage_path_for_remote_sites = 'D:\\temp\\bookapp\\temp_sites\\'
-        self.manage = story.ManagerSites(self.site_storage_path, self.site_remote_url,
-                                         self.local_temp_storage_path_for_remote_sites)
+        self.temp_storage_path = 'D:\\temp\\bookapp\\temp_sites\\'
+        self.site_remote_url_base = \
+            'https://raw.githubusercontent.com/xiaoping2100/AndroidPyBook/master/app/src/main/python/booksite/'
+        self.manage = story.ManagerSites(self.site_storage_path, self.site_remote_url_base, self.temp_storage_path)
 
         self.create_multi_notebook()
 
@@ -64,7 +64,7 @@ class Application(tkinter.Frame):
         site_storage_label1 = tkinter.Label(tab, text='新增网址的存储路径:', width=20)
         site_storage_label2 = tkinter.Label(tab, text=self.site_storage_path, width=120)
         site_remote_url_label1 = tkinter.Label(tab, text='远端URL地址:', width=20)
-        site_remote_url_label2 = tkinter.Label(tab, text=self.site_remote_url, width=120)
+        site_remote_url_label2 = tkinter.Label(tab, text=self.site_remote_url_base, width=120)
         site_remote_url_btn = tkinter.Button(tab, text='查看更新', command=self.get_update_info)
 
         site_storage_label1.grid(row=1, column=1)
@@ -74,9 +74,9 @@ class Application(tkinter.Frame):
         site_remote_url_btn.grid(row=2, column=3)
 
     def get_update_info(self):
-        self.manage.get_local_sites(self.manage.local_storage_path)
-        self.manage.get_remote_sites_from_github()
-
+        self.manage.check_update()
+        self.manage.update_local()
+        self.manage.update_story_instance(self.story_)
 
     def create_download_page_widgets(self, tab):
         query_label = tkinter.Label(tab, text='输入查询的书名或作者:', width=20)
@@ -188,25 +188,6 @@ def main():
     story_.register_site(site5)
     site6 = booksite.DaocaorenshuwuSite()
     story_.register_site(site6)
-
-    # # 动态加载LocalBookSite下的文件,实验通过，但是pycharm会报错
-    # import importlib
-    # import pathlib
-    # import sys
-    # local_booksite_dir = r'F:\python\android\BookLocalSite'
-    # if local_booksite_dir not in sys.path:
-    #     sys.path.append(local_booksite_dir)
-    # p = pathlib.Path(local_booksite_dir)
-    # for f in p.glob('*Site.py'):
-    #     try:
-    #         site_name = f.stem
-    #         if site_name == "basesite":
-    #             continue
-    #         new_pkg = importlib.import_module(site_name)
-    #         new_site = getattr(new_pkg, site_name)()
-    #         story_.register_site(new_site)
-    #     except Exception as e:
-    #         print(e)
 
     root = tkinter.Tk()
     root.title('下载小说')
