@@ -1,8 +1,10 @@
 import time
 import tkinter
 import tkinter.messagebox
+from tkinter import ttk
 import story
 import booksite
+from typing import Optional
 
 
 class Application(tkinter.Frame):
@@ -20,44 +22,84 @@ class Application(tkinter.Frame):
     <Double-KeyPress-A>　　  快速按两下A；
     <Lock-KeyPress-A>　　　  大写状态下按A；
     """
+    _no_values = object()
 
     def __init__(self, root: tkinter.Tk, story_: story.Story):
         super().__init__(root)
         self.root = root
+
+        # 定义下载页的参数
         self.story_ = story_
         self.query_info_var = tkinter.StringVar()
         self.query_info_var.set('某某宝')
         self.download_var = tkinter.StringVar()
         self.download_var.set('未开始下载')
         self.download_text: tkinter.Entry = type(None)
-        self.ret_books = type(None)
-        self.book_brief = type(None)
-        self.ret_chapters = type(None)
-        self.ret_content = type(None)
-        self.create_widgets()
+        self.ret_books = type(self)._no_values
+        self.book_brief = type(self)._no_values
+        self.ret_chapters = type(self)._no_values
+        self.ret_content = type(self)._no_values
+        self.download_books_path = 'D:\\temp\\bookapp\\books\\'
 
-    def create_widgets(self):
-        query_label = tkinter.Label(self.root, text='输入查询的书名或作者:', width=20)
-        query_input = tkinter.Entry(self.root, textvariable=self.query_info_var, width=120)
-        query_books_btn = tkinter.Button(self.root, text='查询', command=self.query_books)
+        # 定义配置页的参数
+        self.site_storage_path = 'D:\\temp\\bookapp\\sites\\'
+        self.site_remote_url = 'https://github.com/xiaoping2100/AndroidPyBook/tree/master/app/src/main/python/booksite'
+        self.local_temp_storage_path_for_remote_sites = 'D:\\temp\\bookapp\\temp_sites\\'
+        self.manage = story.ManagerSites(self.site_storage_path, self.site_remote_url,
+                                         self.local_temp_storage_path_for_remote_sites)
 
-        ret_label2 = tkinter.Label(self.root, text='查询书籍结果:', width=20)
-        self.ret_books = tkinter.Listbox(self.root, selectmode=tkinter.SINGLE, height=10, width=120)
+        self.create_multi_notebook()
 
-        ret_label3 = tkinter.Label(self.root, text='书籍详细信息:', width=20)
-        self.book_brief = tkinter.Text(self.root, height=5, width=120)
-        query_chapters_btn = tkinter.Button(self.root, text='查询章节信息', command=self.query_chapters)
+    def create_multi_notebook(self):
+        notebook = ttk.Notebook(self.root)
+        tab1 = tkinter.Frame(notebook)
+        notebook.add(tab1, text="          下载页          ")
+        self.create_download_page_widgets(tab1)
+        tab2 = tkinter.Frame(notebook)
+        notebook.add(tab2, text="          配置页          ")
+        self.create_setup_page_widgets(tab2)
+        notebook.pack()
 
-        ret_label4 = tkinter.Label(self.root, text='书籍章节信息:', width=20)
-        self.ret_chapters = tkinter.Listbox(self.root, selectmode=tkinter.SINGLE, height=10, width=120)
-        query_content_btn = tkinter.Button(self.root, text='查询小说信息', command=self.query_content)
+    def create_setup_page_widgets(self, tab):
+        site_storage_label1 = tkinter.Label(tab, text='新增网址的存储路径:', width=20)
+        site_storage_label2 = tkinter.Label(tab, text=self.site_storage_path, width=120)
+        site_remote_url_label1 = tkinter.Label(tab, text='远端URL地址:', width=20)
+        site_remote_url_label2 = tkinter.Label(tab, text=self.site_remote_url, width=120)
+        site_remote_url_btn = tkinter.Button(tab, text='查看更新', command=self.get_update_info)
 
-        ret_label5 = tkinter.Label(self.root, text='小说信息:', width=20)
-        self.ret_content = tkinter.Text(self.root, height=25, width=120)
+        site_storage_label1.grid(row=1, column=1)
+        site_storage_label2.grid(row=1, column=2)
+        site_remote_url_label1.grid(row=2, column=1)
+        site_remote_url_label2.grid(row=2, column=2)
+        site_remote_url_btn.grid(row=2, column=3)
 
-        # download_label = tkinter.Label(self.root, text='下载进度:')
-        # self.download_text = tkinter.Entry(self.root, textvariable=self.download_var, width=120)
-        download_book_btn = tkinter.Button(self.root, text='下载', command=self.download_book)
+    def get_update_info(self):
+        self.manage.get_local_sites(self.manage.local_storage_path)
+        self.manage.get_remote_sites_from_github()
+
+
+    def create_download_page_widgets(self, tab):
+        query_label = tkinter.Label(tab, text='输入查询的书名或作者:', width=20)
+        query_input = tkinter.Entry(tab, textvariable=self.query_info_var, width=120)
+        query_books_btn = tkinter.Button(tab, text='查询', command=self.query_books)
+
+        ret_label2 = tkinter.Label(tab, text='查询书籍结果:', width=20)
+        self.ret_books = tkinter.Listbox(tab, selectmode=tkinter.SINGLE, height=10, width=120)
+
+        ret_label3 = tkinter.Label(tab, text='书籍详细信息:', width=20)
+        self.book_brief = tkinter.Text(tab, height=5, width=120)
+        query_chapters_btn = tkinter.Button(tab, text='查询章节信息', command=self.query_chapters)
+
+        ret_label4 = tkinter.Label(tab, text='书籍章节信息:', width=20)
+        self.ret_chapters = tkinter.Listbox(tab, selectmode=tkinter.SINGLE, height=10, width=120)
+        query_content_btn = tkinter.Button(tab, text='查询小说信息', command=self.query_content)
+
+        ret_label5 = tkinter.Label(tab, text='小说信息:', width=20)
+        self.ret_content = tkinter.Text(tab, height=25, width=120)
+
+        # download_label = tkinter.Label(tab, text='下载进度:')
+        # self.download_text = tkinter.Entry(tab, textvariable=self.download_var, width=120)
+        download_book_btn = tkinter.Button(tab, text='下载', command=self.download_book)
 
         query_label.grid(row=1, column=1)
         query_input.grid(row=1, column=2)
@@ -128,7 +170,7 @@ class Application(tkinter.Frame):
 
     def download_book(self):
         start = time.time()
-        self.story_.save_books('d:\\temp\\')
+        self.story_.save_books(self.download_books_path)
         tkinter.messagebox.showinfo('提示', f'耗时:{time.time() - start}秒')
 
 
@@ -146,6 +188,25 @@ def main():
     story_.register_site(site5)
     site6 = booksite.DaocaorenshuwuSite()
     story_.register_site(site6)
+
+    # # 动态加载LocalBookSite下的文件,实验通过，但是pycharm会报错
+    # import importlib
+    # import pathlib
+    # import sys
+    # local_booksite_dir = r'F:\python\android\BookLocalSite'
+    # if local_booksite_dir not in sys.path:
+    #     sys.path.append(local_booksite_dir)
+    # p = pathlib.Path(local_booksite_dir)
+    # for f in p.glob('*Site.py'):
+    #     try:
+    #         site_name = f.stem
+    #         if site_name == "basesite":
+    #             continue
+    #         new_pkg = importlib.import_module(site_name)
+    #         new_site = getattr(new_pkg, site_name)()
+    #         story_.register_site(new_site)
+    #     except Exception as e:
+    #         print(e)
 
     root = tkinter.Tk()
     root.title('下载小说')

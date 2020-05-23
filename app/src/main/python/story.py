@@ -2,9 +2,14 @@ import pathlib
 import re
 import tempfile
 import threading
-from typing import List
+from typing import List, Optional, Dict
 from booksite.basesite import Book, Chapter, BaseSite
+from bs4 import BeautifulSoup
 import functools
+import importlib
+import requests
+import sys
+import urllib.parse
 
 
 class _Download(threading.Thread):
@@ -56,9 +61,10 @@ class Story:
     def register_site(self, site: BaseSite) -> None:
         self.sites.append(site)
 
-    def debug_print_filepath(self, filepath: str) -> None:
+    # noinspection PyMethodMayBeStatic
+    def debug_print_file_path(self, file_path: str) -> None:
         # Android中调用 story.callAttr()不能是static函数
-        p = pathlib.Path(filepath)
+        p = pathlib.Path(file_path)
         print(p.absolute().as_posix())
 
     def fetch_books(self, search_info: str) -> None:
@@ -153,3 +159,86 @@ class Story:
 
     def asyn_get_statue_save_books(self) -> str:
         return self.asyn_task_of_save_books_statue
+
+
+class ManagerSites:
+    """判断github上的网站列表是否有变化（增加/删除/更新），并动态更新本地story实例 """
+    ignore_files = {"basesite", "__init__"}
+
+    def __init__(self, local_storage_path, remote_site_url, local_temp_storage_path_for_remote_sites):
+        """
+        :param local_storage_path: 书籍网站的本地存储路径，例如，android下为app本地路径
+        :param remote_site_url: github的项目地址
+        :param local_temp_storage_path_for_remote_sites: remote_site_url下载到本地的临时地址
+        """
+        self.local_storage_path = local_storage_path
+        self.local_sites = None
+        self.remote_site_url = remote_site_url
+        self.remote_sites = None
+        self.local_temp_storage_path_for_remote_sites = local_temp_storage_path_for_remote_sites
+
+    def _get_version(self, site_file) -> Optional[str]:
+        """
+        获取网站文件**Site.py中的BaseSite.SiteInfo.version信息
+        :return: version 字符串
+        """
+        with open(site_file, 'r', encoding='utf-8') as f:
+            content = f.read()
+            # 找到init函数
+            if (m := re.search(r'def\s+__init__(.+?)\sdef\s', content, flags=re.DOTALL)) is None:
+                return None
+            content2 = m.group(1)
+            if (m2 := re.search(r'version\s*=\s*[\'\"](.+?)[\'\"]', content2, flags=re.DOTALL)) is None:
+                return None
+            else:
+                return m2.group(1)
+
+    def get_sites_info(self, path) -> Dict:
+        p = pathlib.Path(path)
+        sites_name_and_path = list((f.stem, f.absolute().as_posix())
+                                   for f in p.glob('*Site.py') if f.stem not in self.ignore_files)
+        sites_version = [self._get_version(path) for (name, path) in sites_name_and_path]
+        sites_info = dict((name, dict(path=path, version=version))
+                          for (name, path), version in zip(sites_name_and_path, sites_version))
+        return sites_info
+
+    def download_site_file_from_github(self, short_name, url):
+        p = pathlib.Path(self.local_temp_storage_path_for_remote_sites)
+        r = requests.get(url)
+        with open(p / short_name, 'w', encoding='utf-8') as f:
+            f.write(r.text)
+
+    def get_remote_sites_from_github(self):
+        """
+
+        从github上下载更新文件, 需要将地址
+        https://github.com/xiaoping2100/AndroidPyBook/blob/master/app/src/main/python/booksite/CuohengSite.py
+        转换为
+        https://raw.githubusercontent.com/xiaoping2100/AndroidPyBook/master/app/src/main/python/booksite/CuohengSite.py
+        :return:
+        """
+        github_raw_base_url = 'https://raw.githubusercontent.com/'
+        r = requests.get(self.remote_site_url)
+        soup = BeautifulSoup(r.content, 'html.parser')
+        site_soup_list = soup.select('tbody td.content a')
+        sites = [(site.text, urllib.parse.urljoin(github_raw_base_url, site.attrs['href'].replace('/blob/', '/')))
+                 for site in site_soup_list if site.text[:-3] not in self.ignore_files]
+        for short_name, url in sites:
+            self.download_site_file_from_github(short_name, url)
+
+    def check_update(self) -> List:
+        self.get_remote_sites_from_github()
+        self.local_sites = self.get_sites_info(self.local_storage_path)
+        self.remote_sites = self.get_sites_info(self.local_temp_storage_path_for_remote_sites)
+        update_list = []
+        for site_name, remote_site_info in self.remote_sites:
+            if site_name in self.local_sites and remote_site_info['version'] == self.local_sites[site_name]['version']:
+                continue
+            update_list.append((site_name, self.local_sites[site_name]['path'], remote_site_info['path']))
+        return update_list
+
+    def update_local(self) -> None:
+        pass
+
+    def update_story_instance(self, story: Story) -> None:
+        pass
