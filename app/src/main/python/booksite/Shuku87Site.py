@@ -7,17 +7,21 @@ import urllib.parse
 from bs4 import BeautifulSoup
 from typing import List
 
-from .basesite import SiteInfo, BaseSite, Book, Chapter, print_in_out
+try:
+    import basesite
+except (ModuleNotFoundError, ImportError) as e:
+    from . import basesite
 
 
-class Shuku87Site(BaseSite):
+class Shuku87Site(basesite.BaseSite):
     def __init__(self):
-        self.site_info = SiteInfo(
+        self.site_info = basesite.SiteInfo(
             type='网络小说',
             statue='上线版本',
             url='http://www.87xiaoshuo.net',
             name='霸气书库',
             brief_name='霸气网',
+            version='1.1',
             max_threading_number=3,
         )
         super().__init__(self.site_info)
@@ -26,8 +30,8 @@ class Shuku87Site(BaseSite):
         self.search_url = 'http://www.87xiaoshuo.net/modules/article/search.php'
         self.session = requests.session()
 
-    @print_in_out
-    def get_books(self, search_info: str) -> List[Book]:
+    @basesite.print_in_out
+    def get_books(self, search_info: str) -> List[basesite.Book]:
         headers = {'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
                    'Content-Type': 'application/x-www-form-urlencoded',
                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:75.0) Gecko/20100101 Firefox/75.0'}
@@ -38,7 +42,7 @@ class Shuku87Site(BaseSite):
         if r is None:
             return []
         if r.status_code == 302:  # 只找到一本书，将跳转
-            return [Book(site=self, url=r.headers['Location'], name=search_info, author="", brief="")]
+            return [basesite.Book(site=self, url=r.headers['Location'], name=search_info, author="", brief="")]
 
         soup = BeautifulSoup(r.content.decode(self.encoding, 'ignore'), 'html.parser')
         if not (book_soup_list := soup.select('div.ml212 dt')):
@@ -54,13 +58,13 @@ class Shuku87Site(BaseSite):
             book_name = m.group(1)
             book_author = m.group(2)
             book_brief = m.group(3).replace("\n", "").replace("\r", "").strip()
-            book = Book(site=self, url=book_url, name=book_name, author=book_author,
-                        brief=book_brief)
+            book = basesite.Book(site=self, url=book_url, name=book_name, author=book_author,
+                                 brief=book_brief)
             search_book_results.append(book)
         return search_book_results
 
-    @print_in_out
-    def get_chapters(self, book: Book) -> List[Chapter]:
+    @basesite.print_in_out
+    def get_chapters(self, book: basesite.Book) -> List[basesite.Chapter]:
         url = book.url.replace("/book/", "/read/")
         r = self.try_get_url(self.session, url)
         if r is None:
@@ -68,13 +72,13 @@ class Shuku87Site(BaseSite):
 
         soup = BeautifulSoup(r.content.decode(self.encoding, 'ignore'), 'html.parser')
         chapter_soup_list = soup.select('td > a')
-        chapters = [Chapter(site=self,
-                            url=self.base_url + chapter.attrs['href'],
-                            title=chapter.text)
+        chapters = [basesite.Chapter(site=self,
+                                     url=self.base_url + chapter.attrs['href'],
+                                     title=chapter.text)
                     for chapter in chapter_soup_list]
         return chapters
 
-    def get_chapter_content(self, chapter: Chapter) -> str:
+    def get_chapter_content(self, chapter: basesite.Chapter) -> str:
         session = copy.deepcopy(self.session)
         r = self.try_get_url(session, chapter.url)
         session.close()

@@ -6,17 +6,21 @@ import urllib.parse
 from bs4 import BeautifulSoup
 from typing import List
 
-from .basesite import SiteInfo, BaseSite, Book, Chapter, print_in_out
+try:
+    import basesite
+except (ModuleNotFoundError, ImportError) as e:
+    from . import basesite
 
 
-class SoxsSite(BaseSite):
+class SoxsSite(basesite.BaseSite):
     def __init__(self):
-        self.site_info = SiteInfo(
+        self.site_info = basesite.SiteInfo(
             type='网络小说',
             statue='上线版本',
             url='https://www.soxs.cc',
             name='搜小说',
             brief_name='搜小说',
+            version='1.1',
             max_threading_number=50,
         )
         super().__init__(self.site_info)
@@ -25,8 +29,8 @@ class SoxsSite(BaseSite):
         self.search_url = 'https://www.soxs.cc/search.html'
         self.session = requests.session()
 
-    @print_in_out
-    def get_books(self, search_info: str) -> List[Book]:
+    @basesite.print_in_out
+    def get_books(self, search_info: str) -> List[basesite.Book]:
         r = self.try_post_url(self.session, url=self.search_url, try_timeout=5,
                               params=f'searchtype=all&searchkey={urllib.parse.quote(search_info)}')
         if r is None:
@@ -46,26 +50,26 @@ class SoxsSite(BaseSite):
             book_name = span_list[1].find('a').text
             book_author = span_list[3].text
             book_brief = f"最新章节:{span_list[2].find('a').text} 更新时间:{span_list[4].text.strip()}"
-            book = Book(site=self, url=book_url, name=book_name, author=book_author,
-                        brief=book_brief)
+            book = basesite.Book(site=self, url=book_url, name=book_name, author=book_author,
+                                 brief=book_brief)
             search_book_results.append(book)
         return search_book_results
 
-    @print_in_out
-    def get_chapters(self, book: Book) -> List[Chapter]:
+    @basesite.print_in_out
+    def get_chapters(self, book: basesite.Book) -> List[basesite.Chapter]:
         r = self.try_get_url(self.session, book.url)
         if r is None:
             return []
 
         soup = BeautifulSoup(r.content, 'html.parser')
         chapter_soup_list = soup.select('div.caption + div  dd a')
-        chapters = [Chapter(site=self,
-                            url=self.base_url + chapter.attrs['href'],
-                            title=chapter.text)
+        chapters = [basesite.Chapter(site=self,
+                                     url=self.base_url + chapter.attrs['href'],
+                                     title=chapter.text)
                     for chapter in chapter_soup_list]
         return chapters
 
-    def get_chapter_content(self, chapter: Chapter) -> str:
+    def get_chapter_content(self, chapter: basesite.Chapter) -> str:
         session = copy.deepcopy(self.session)
         r = self.try_get_url(session, chapter.url)
         session.close()

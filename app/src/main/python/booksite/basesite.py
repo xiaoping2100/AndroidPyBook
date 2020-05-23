@@ -14,6 +14,7 @@ class SiteInfo:
     name: str
     brief_name: str
     url: str
+    version: str  # 版本号，格式为 a.b, a为大版本号，b为小版本号，ab都是从1开始，无需0对其
     max_threading_number: int = 50  # 并行访问的最大线程数量
 
 

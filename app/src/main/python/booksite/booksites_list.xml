@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+
+<booksites>
+    <!--说明：所有的booksite在all_booksites中描述-->
+    <!--说明：如果all_booksites中的版本号高于app_booksites中的版本号，将更新-->
+    <!--注意：name和version与basesite.SiteInfo中的信息要保持一致-->
+    <all_booksites>
+        <booksite number="1001">
+            <name>青少年读书网</name>
+            <version>1.1</version>
+            <url>
+                https://raw.githubusercontent.com/xiaoping2100/AndroidPyBook/master/app/src/main/python/booksite/Fox2018Site.py
+            </url>
+        </booksite>
+        <booksite number="1002">
+            <name>霸气书库</name>
+            <version>1.1</version>
+            <url>
+                https://raw.githubusercontent.com/xiaoping2100/AndroidPyBook/master/app/src/main/python/booksite/Shuku87Site.py
+            </url>
+        </booksite>
+        <booksite number="1003">
+            <name>搜小说</name>
+            <version>1.1</version>
+            <url>
+                https://raw.githubusercontent.com/xiaoping2100/AndroidPyBook/master/app/src/main/python/booksite/SoxsSite.py
+            </url>
+        </booksite>
+    </all_booksites>
+
+    <!--说明：跟随app更新的booksite在app_booksites中描述-->
+    <!--注意：name和version与basesite.SiteInfo中的信息要保持一致-->
+    <app_booksites>
+        <booksite number="2001">
+            <name>奇书网</name>
+            <version>1.1</version>
+            <url>
+                https://raw.githubusercontent.com/xiaoping2100/AndroidPyBook/master/app/src/main/python/booksite/XqishutaSite.py
+            </url>
+        </booksite>
+        <booksite number="2002">
+            <name>稻草人书屋</name>
+            <version>1.1</version>
+            <url>
+                https://raw.githubusercontent.com/xiaoping2100/AndroidPyBook/master/app/src/main/python/booksite/DaocaorenshuwuSite.py
+            </url>
+        </booksite>
+        <booksite number="2003">
+            <name>错衡文学网</name>
+            <version>1.1</version>
+            <url>
+                https://raw.githubusercontent.com/xiaoping2100/AndroidPyBook/master/app/src/main/python/booksite/CuohengSite.py
+            </url>
+        </booksite>
+    </app_booksites>
+</booksites>
+
